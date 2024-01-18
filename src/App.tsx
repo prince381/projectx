@@ -15,6 +15,8 @@ import CompleteAuth from './views/completeAuth';
 import GoogleAuth from './views/googleAuth';
 // import GoogleAuthSuccess from './views/googleProtected';
 import Home from './views/Index';
+import PrivacyPolicy from './views/privacypolicy';
+import TermsOfService from './views/termsofservice';
 
 // import Protected from './layout/private';
 import Guest from './layout/public';
@@ -60,6 +62,16 @@ function App() {
         <Route path='/users/complete_registration/:id' element={
           <Guest showNav={false}>
             <CompleteAuth />
+          </Guest>
+        } />
+        <Route path='/privacy-policy' element={
+          <Guest showNav={true}>
+            <PrivacyPolicy />
+          </Guest>
+        } />
+        <Route path='/terms-of-service' element={
+          <Guest showNav={true}>
+            <TermsOfService />
           </Guest>
         } />
         <Route path='/auth/google/callback' element={<GoogleAuth />} />
