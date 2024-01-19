@@ -69,9 +69,9 @@ export async function logout() {
     const url = `${api_url}/auth/logout`;
 
     try {
+        Cookies.remove('accessToken');
         const { status, statusText } = await axios.get(url);
         if (status == 500) throw new Error(statusText);
-        Cookies.remove('accessToken');
     } catch(error: any) {
         const errorMessage = error.response.data.message;
         console.log('Failed to authenticate user. Reason:', errorMessage);
