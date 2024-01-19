@@ -10,6 +10,9 @@ export interface IUser {
     loginAttempts?: number;
     lockUntil?: number;
     googleId?: string;
+    id?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface IFormInput {

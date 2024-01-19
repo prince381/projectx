@@ -1,15 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useContext } from 'react';
+import Cookies from 'js-cookie';
 import { Link } from 'react-router-dom';
 import { userContext } from '../../context/userContext';
 import logo from '../../assets/images/logo.png'
+import { logout } from '../../services/auth';
 
 
 export default function Header({ showNav }: { showNav: boolean }) {
-  const { user } = useContext(userContext);
+  const { user, clearUser } = useContext(userContext);
 
-  const logout = () => {
-    
+  const logUserOut = async () => {
+    if (user && user.googleId) {
+      clearUser();
+      await logout();
+      return;
+    }
+
+    Cookies.remove('accessToken');
+    clearUser();
   };
 
   return (
@@ -28,7 +37,7 @@ export default function Header({ showNav }: { showNav: boolean }) {
                       <li>
                         <button
                           className='border-none bg-none text-sm transition-all duration-75 hover:text-blue-400'
-                          onClick={logout}
+                          onClick={logUserOut}
                         >
                           Log out
                         </button>

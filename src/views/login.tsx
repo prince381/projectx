@@ -1,20 +1,39 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { useForm, SubmitHandler } from "react-hook-form"
+import Cookies from 'js-cookie'
 import googleImage from '../assets/images/google.png'
 import { Link } from 'react-router-dom'
 import { IFormInput } from '../interfaces'
 import Loader from '../components/Loader'
+import { loginUser } from '../services/auth'
+import { userContext } from '../context/userContext'
 
 export default function Login() {
-  const [loading, ] = useState(false);
-  const [authError, ] = useState('');
-  const { register, handleSubmit, formState: { errors } } = useForm<IFormInput>({
+  const { saveUser } = useContext(userContext);
+  const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<IFormInput>({
     mode: "all"
   });
 
-  const onSubmitForm: SubmitHandler<IFormInput> = (data) => {
-    console.log(data);
+  const onSubmitForm: SubmitHandler<IFormInput> = async (data) => {
+    // console.log(data);
+    setLoading(true);
+
+    try {
+      const { token, user } = await loginUser(data);
+      Cookies.set('accessToken', token, { expires: 1 });
+      // console.log(user);
+      setLoading(false);
+      reset();
+      saveUser(user);
+    } catch(error: any) {
+      const message = error.response ? error.response.data?.message : error.message;
+      setAuthError(message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,14 +48,14 @@ export default function Login() {
               Login to your account
             </h3>
             <p className={`w-full text-red-600 text-sm transition-all ${
-              authError ? 'mb-2.5 h-max flex' : 'hidden'
+              authError ? 'mb-2.5 h-max flex items-center' : 'hidden'
             }`}>
               <i className="fas fa-exclamation-circle text-xl mr-2"></i>
               { authError }
             </p>
             <input
               type='email'
-              className="sub-card w-full rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full rounded-sm p-2 focus:outline-none"
               placeholder='Email address'
               { ...register('email', {
                 required: true,
@@ -52,11 +71,11 @@ export default function Login() {
             }
             <input
               type='password'
-              className="sub-card w-full mt-4 rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full mt-4 rounded-sm p-2 focus:outline-none"
               placeholder='Password'
               { ...register('password', {
                 required: true,
-                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,15})/
+                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$&!%]).{8,15})/
               })}
             />
             {
@@ -86,7 +105,12 @@ export default function Login() {
             <span className='mb-5 block text-sm'>Or</span>
             <button
               className={`flex w-full max-w-[300px] items-center rounded-sm border border-blue-500 py-4 px-10 ${loading ? 'pointer-events-none opacity-20 cursor-not-allowed' : ''}`}
-              onClick={(e) => { e.preventDefault() }}
+              onClick={(e) => {
+                e.preventDefault();
+                const api_url = import.meta.env.VITE_API_URL;
+                const authUrl = `${api_url}/auth/google`;
+                window.location.href = authUrl;
+              }}
             >
               <img
                 src={googleImage}

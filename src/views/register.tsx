@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, MouseEvent } from 'react'
 import googleImage from '../assets/images/google.png'
@@ -5,17 +6,33 @@ import { Link } from 'react-router-dom'
 import { useForm, SubmitHandler } from "react-hook-form"
 import { IFormInput } from '../interfaces'
 import Loader from '../components/Loader'
+import { signupUser } from '../services/auth'
 
 export default function Register() {
-  const [loading, ] = useState(false);
-  const [authError, ] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<IFormInput>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<IFormInput>({
     mode: "all"
   });
 
-  const onSubmitForm: SubmitHandler<IFormInput> = (data) => {
-    console.log(data);
+  const onSubmitForm: SubmitHandler<IFormInput> = async (data) => {
+    // console.log(data);
+    setLoading(true);
+
+    try {
+      const res = await signupUser(data);
+      console.log(res);
+
+      setLoading(false);
+      setShowVerificationModal(true);
+      reset();
+
+    } catch(error: any) {
+      const message = error.response ? error.response.data?.message : error.message;
+      setAuthError(message);
+      setLoading(false);
+    }
   };
 
   const toggleModal = (e: MouseEvent<HTMLElement>) => {
@@ -52,14 +69,14 @@ export default function Register() {
               Create a new account
             </h3>
             <p className={`w-full text-red-600 text-sm transition-all ${
-              authError ? 'mb-2.5 h-max flex' : 'hidden'
+              authError ? 'mb-2.5 h-max flex items-center' : 'hidden'
             }`}>
               <i className="fas fa-exclamation-circle text-xl mr-2"></i>
               { authError }
             </p>
             <input
               type='text'
-              className="sub-card w-full rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full rounded-sm p-2 focus:outline-none"
               placeholder='Username'
               { ...register('username', {
                 required: true,
@@ -76,7 +93,7 @@ export default function Register() {
             }
             <input
               type='email'
-              className="sub-card w-full mt-4 rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full mt-4 rounded-sm p-2 focus:outline-none"
               placeholder='Email address'
               { ...register('email', {
                 required: true,
@@ -92,11 +109,11 @@ export default function Register() {
             }
             <input
               type='password'
-              className="sub-card w-full mt-4 rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full mt-4 rounded-sm p-2 focus:outline-none"
               placeholder='Password'
               { ...register('password', {
                 required: true,
-                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,15})/
+                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$&!%]).{8,15})/
               })}
             />
             {
@@ -108,11 +125,11 @@ export default function Register() {
             }
             <input
               type='password'
-              className="sub-card w-full mt-4 rounded-sm border-2 p-2 focus:outline-none"
+              className="sub-card w-full mt-4 rounded-sm p-2 focus:outline-none"
               placeholder='Confirm Password'
               { ...register('confirm_password', {
                 required: true,
-                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,15})/,
+                pattern: /((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$&!%]).{8,15})/,
                 validate: (value, { password }) => value && value === password
               })}
             />
@@ -143,7 +160,12 @@ export default function Register() {
             <span className='mb-5 block text-sm md:text-base'>Or</span>
             <button
               className={`flex w-full max-w-[300px] items-center rounded-sm border border-blue-500 py-4 px-10 ${loading ? 'pointer-events-none opacity-20 cursor-not-allowed' : ''}`}
-              onClick={(e) => { e.preventDefault() }}
+              onClick={(e) => {
+                e.preventDefault();
+                const api_url = import.meta.env.VITE_API_URL;
+                const authUrl = `${api_url}/auth/google`;
+                window.location.href = authUrl;
+              }}
             >
               <img
                 src={googleImage}

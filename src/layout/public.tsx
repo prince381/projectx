@@ -10,9 +10,7 @@ export default function Guest({ children, showNav }: {
     const { user } = useContext(userContext);
     const authorised = user && user.isVerified && user.registrationCompleted;
 
-    return authorised ? (
-        user.googleId ? <Navigate to="/auth/google/protected" /> : <Navigate to="/users/protected" />
-    ) : (
+    return authorised ? <Navigate to="/users/protected" /> : (
         <>
             <Header showNav={showNav} />
             { children }
